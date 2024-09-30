@@ -41,13 +41,17 @@ async def get_error_traces_by_service(service):
             for s in range(0, s_len):
                 if res.json()["data"][t]["spans"][s]["tags"][4]["key"] == "error":
                     trace_id = res.json()["data"][t]["spans"][s]["traceID"]
-
                     if trace_id in error_ids:
-                        continue
-
+                        break
                     error_ids.append(trace_id)
-                    error_titles.append(res.json()["data"][t]["spans"][s]["tags"][3]["value"])
-                    error_logs.append(res.json()["data"][t]["spans"][s]["logs"])
+                    
+                    if res.json()["data"][t]["spans"][s]["tags"][3]["key"] == "name":
+                        error_title = res.json()["data"][t]["spans"][s]["tags"][3]["value"]
+                    else: 
+                        error_title = res.json()["data"][t]["spans"][0]["operationName"]
+                    error_titles.append(error_title)
+                    error_log = res.json()["data"][t]["spans"][s]["logs"]
+                    error_logs.append(error_log)
                     trace_data = await get_error_trace_data(trace_id)
                     error_datas.append(trace_data)
 
@@ -59,12 +63,11 @@ async def get_error_traces_by_service(service):
             detail=str(e)
         )
 
-#@repeat_every(seconds=60 * 60)
 @repeat_every(seconds=60)
+#@repeat_every(seconds=CONF.default.cycle)
 async def get_error_traces() -> List[str]:
     try:
-#        services = ["cinder-cinder-api", "cinder-cinder-backup", "cinder-cinder-volume", "glance-api", "horizon-horizon", "keystone-public", "nova-nova-compute", "nova-nova-conductor", "nova-osapi-compute", "neutron-neutron-server"]
-        services = ["horizon-horizon"]
+        services = ["cinder-cinder-api", "cinder-cinder-backup", "cinder-cinder-volume", "glance-api", "horizon-horizon", "keystone-public", "nova-nova-compute", "nova-nova-conductor", "nova-osapi-compute", "neutron-neutron-server"]
 
         for service in services:
             await get_error_traces_by_service(service)
