@@ -1,13 +1,11 @@
 from oslo_config import cfg
-from . import default, cors
+from config import default, cors, zendesk, jaeger
 
-COND = cfg.CONF
+CONF = cfg.CONF
 
-conf_modules = [
-        default,
-        cors]
+conf_modules = [default, cors, zendesk, jaeger]
 
-def configure(conf=None, config_file_path="/etc/rca/rca/conf")
+def configure(conf=None, config_file_path="/etc/rca/rca.conf"):
     if conf is None:
         conf = CONF
 
